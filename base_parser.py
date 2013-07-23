@@ -39,24 +39,33 @@ class BaseParser(object):
         return re.search('^\\s*\\*', line)
 
     def parse(self, line):
+        print "parse..."
         out = self.parse_class(line)  # (name, extends)
+        
         if out:
+            print "first if"
             return self.format_class(*out)
 
         out = self.parse_function(line)  # (name, args)
+       
         if out:
+            print "second if"
             return self.format_function(*out)
 
         out = self.parse_var(line)
         if out:
+            print "third if"
             return self.format_var(*out)
 
         return None
 
     def parse_class(self, line):
+        print "parse_class: " + line
         return None
 
     def parse_function(self, line):
+        print "hello?"
+        print "parse_function: " + line
         return None
 
     def parse_var(self, line):
@@ -74,7 +83,7 @@ class BaseParser(object):
         out.append("${1:[%s description]}" % (self.escape(name)))
 
         if base:
-            out.append("Extends: %s" % base)
+            out.append("@extends %s" % base)
 
         if interface:
             out.append("Implements: %s" % interface)
@@ -91,44 +100,43 @@ class BaseParser(object):
         return out
 
     def format_function(self, name, args, return_type=None):
+        print "format function"
         out = []
         function_name = self.function_name
 
-        out.append("%s: %s" % (function_name, name))
-        out.append("${1:description}")
+        #out.append("%s: %s" % (function_name, name))
+        out.append("${1:description}\n*")
 
         self.add_extra_tags(out)
+
+        out.append("@memberof module:"+ self.default_settings['class_name'])
 
         # if there are arguments, add a Parameter section for each
         if args:
             # remove comments inside the argument list.
             # args = re.sub("/\*.*?\*/", '', args)
-            out.append("Parameters:")
+            # #          * @param {String}
+            #*      attribute - the value of the attribute to return
             params = []
 
             for arg in self.parse_args(args):
-                description = '[type/description]'
+                description = 'description'
                 if arg[0]:
                     description = arg[0]
 
-                params.append("  %s - ${1:%s}" % (self.escape(arg[1]), description))
+                params.append("@param {type}\n*\t  %s - ${1:%s}" % (self.escape(arg[1]), description))
 
             out.extend(self.align_parameters(params))
-
-            # add extra line after parameters?
-            if self.preferences.get("natural_docs_spacer_between_sections"):
-                out.append("")
 
         if return_type is None:
             return_type = self.get_function_return_type(name)
 
         if return_type is not None and return_type is not self.NO_RETURN_TYPE:
-            out.append("Returns:")
 
             if return_type is not self.UNKNOWN_RETURN_TYPE:
-                out.append("  %s - ${1:return description}" % (return_type))
+                out.append("@returns %s - ${1:description}" % (return_type))
             else:
-                out.append("  ${1:return description}")
+                out.append("@returns ${1:description}")
 
         return out
 

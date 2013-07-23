@@ -57,7 +57,7 @@
   //  *
   //  *    [description]
   //  */
-  "natural_docs_spacer_between_sections": true,
+  "natural_docs_spacer_between_sections": false,
 
 
   // Whether Perl blocks should use POD style or # style. Example of POD Style:
